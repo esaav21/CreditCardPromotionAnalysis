@@ -1,0 +1,220 @@
+---
+title: "Credit Card Promotion Test Analysis"
+author: "Eduardo Saavedra"
+date: "2024-08-06"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+library(tidyverse)
+```
+# Introduction
+### This analysis aims to determine the effect of a special Low Fee promotion on credit card applications among Small Business owner customers. The analysis includes both potential and actual outcomes, with a focus on average treatment effects (ATE), their standard errors, and 95% confidence intervals.
+
+# Data Loading
+### Load the dataset and inspect the first few rows.
+
+```{r}
+CreditCard <- read_csv("CreditCardPromotionData.csv")
+head(CreditCard)
+```
+
+# Potential Outcomes Anlaysis
+## A. On the Total Sample
+### Calculate the ATE, standard error, and 95% confidence interval for the total sample.
+
+```{r}
+ATE_1A <- mean(CreditCard$`Potential Outcomes 1`) - mean(CreditCard$`Potential Outcomes 0`)
+var_s_1A <- var(CreditCard$`Potential Outcomes 1`)
+var_n_1A <- var(CreditCard$`Potential Outcomes 0`)
+s_num_1A <- nrow(CreditCard)
+non_num_1A <- nrow(CreditCard)
+SE_1A <- sqrt((var_s_1A / s_num_1A) + (var_n_1A / non_num_1A))
+UB_1A <- ATE_1A + 1.96 * SE_1A
+LB_1A <- ATE_1A - 1.96 * SE_1A
+sprintf("For total sample ATE: %.3f, SE: %.3f, 95%% CI: [%.3f, %.3f]", ATE_1A, SE_1A, LB_1A, UB_1A)
+```
+
+## B. By Credit Score Tier
+### Calculate the ATE, standard error, and 95% confidence interval for each credit score tier.
+
+### Tier 1
+```{r}
+tier_1 <- CreditCard %>% filter(`Credit Score Tier` == 1)
+ATE_tier1 <- mean(tier_1$`Potential Outcomes 1`) - mean(tier_1$`Potential Outcomes 0`)
+SE_tier1 <- sqrt((var(tier_1$`Potential Outcomes 1`) / nrow(tier_1)) + (var(tier_1$`Potential Outcomes 0`) / nrow(tier_1)))
+UB_tier1 <- ATE_tier1 + 1.96 * SE_tier1
+LB_tier1 <- ATE_tier1 - 1.96 * SE_tier1
+sprintf("For Tier 1 ATE: %.3f, SE: %.3f, 95%% CI: [%.3f, %.3f]", ATE_tier1, SE_tier1, LB_tier1, UB_tier1)
+
+```
+
+### Tier 2
+```{r}
+tier_2 <- CreditCard %>% filter(`Credit Score Tier` == 2)
+ATE_tier2 <- mean(tier_2$`Potential Outcomes 1`) - mean(tier_2$`Potential Outcomes 0`)
+SE_tier2 <- sqrt((var(tier_2$`Potential Outcomes 1`) / nrow(tier_2)) + (var(tier_2$`Potential Outcomes 0`) / nrow(tier_2)))
+UB_tier2 <- ATE_tier2 + 1.96 * SE_tier2
+LB_tier2 <- ATE_tier2 - 1.96 * SE_tier2
+sprintf("For Tier 2 ATE: %.3f, SE: %.3f, 95%% CI: [%.3f, %.3f]", ATE_tier2, SE_tier2, LB_tier2, UB_tier2)
+```
+
+### Tier 3
+```{r}
+tier_3 <- CreditCard %>% filter(`Credit Score Tier` == 3)
+ATE_tier3 <- mean(tier_3$`Potential Outcomes 1`) - mean(tier_3$`Potential Outcomes 0`)
+SE_tier3 <- sqrt((var(tier_3$`Potential Outcomes 1`) / nrow(tier_3)) + (var(tier_3$`Potential Outcomes 0`) / nrow(tier_3)))
+UB_tier3 <- ATE_tier3 + 1.96 * SE_tier3
+LB_tier3 <- ATE_tier3 - 1.96 * SE_tier3
+sprintf("For Tier 3 ATE: %.3f, SE: %.3f, 95%% CI: [%.3f, %.3f]", ATE_tier3, SE_tier3, LB_tier3, UB_tier3)
+```
+
+## C. On the Total Sample by Blocking Using Credit Score
+### Calculate the ATE, standard error, and 95% confidence interval using the blocking technique.
+
+```{r}
+block_SE <- function(Yj0, Yj1, Nj, mj) {
+  SE_j <- sqrt(var(Yj0) / (Nj - mj) + var(Yj1) / mj)
+  return(SE_j)
+}
+
+# Tier 1
+Y1_1 <- tier_1$`Potential Outcomes 1`
+Y1_0 <- tier_1$`Potential Outcomes 0`
+ATE_b1 <- mean(Y1_1) - mean(Y1_0)
+N1 <- length(Y1_1) + length(Y1_0)
+m1 <- length(Y1_1)
+block1_SE <- block_SE(Y1_0, Y1_1, N1, m1)
+
+# Tier 2
+Y2_1 <- tier_2$`Potential Outcomes 1`
+Y2_0 <- tier_2$`Potential Outcomes 0`
+ATE_b2 <- mean(Y2_1) - mean(Y2_0)
+N2 <- length(Y2_1) + length(Y2_0)
+m2 <- length(Y2_1)
+block2_SE <- block_SE(Y2_0, Y2_1, N2, m2)
+
+# Tier 3
+Y3_1 <- tier_3$`Potential Outcomes 1`
+Y3_0 <- tier_3$`Potential Outcomes 0`
+ATE_b3 <- mean(Y3_1) - mean(Y3_0)
+N3 <- length(Y3_1) + length(Y3_0)
+m3 <- length(Y3_1)
+block3_SE <- block_SE(Y3_0, Y3_1, N3, m3)
+
+total_SE_func <- function(SE_list, N_list, N) {
+  SE <- sqrt(sum((N_list / N) * SE_list^2))
+  return(SE)
+}
+
+SE_list <- c(block1_SE, block2_SE, block3_SE)
+N_list <- c(N1, N2, N3)
+N <- sum(N_list)
+total_SE <- total_SE_func(SE_list, N_list, N)
+block_UB <- mean(c(ATE_b1, ATE_b2, ATE_b3)) + 1.96 * total_SE
+block_LB <- mean(c(ATE_b1, ATE_b2, ATE_b3)) - 1.96 * total_SE
+sprintf("The 95%% confidence interval for potential outcome by blocking is %.3f to %.3f", block_LB, block_UB)
+
+```
+
+# Actual Outcomes Analysis
+## A. On the Total Samples
+### Calculate the ATE, standard error, and 95% confidence interval for actual outcomes on the total sample.
+
+```{r}
+sample <- CreditCard %>% filter(`Offer Letter Sent` == 1)
+nonsample <- CreditCard %>% filter(`Offer Letter Sent` == 0)
+ATE <- mean(sample$`Actual Outcomes`) - mean(nonsample$`Actual Outcomes`)
+sampleVar <- var(sample$`Actual Outcomes`)
+nsample <- nrow(sample)
+nonsampleVar <- var(nonsample$`Actual Outcomes`)
+nnonsample <- nrow(nonsample)
+SE <- sqrt((sampleVar / nsample) + (nonsampleVar / nnonsample))
+LB <- ATE - 1.96 * SE
+UB <- ATE + 1.96 * SE
+sprintf("The 95%% confidence interval is ATE: %.3f (%.3f, %.3f)", ATE, LB, UB)
+
+```
+
+
+## B. By Credit Score Tier
+### Calculate the ATE, standard error, and 95% confidence interval for actual outcomes by credit score tier.
+
+### Tier 1
+```{r}
+tier1 <- CreditCard %>% filter(`Credit Score Tier` == 1)
+other <- CreditCard %>% filter(`Credit Score Tier` != 1)
+ATE_T1 <- mean(tier1$`Actual Outcomes`) - mean(other$`Actual Outcomes`)
+SE_T1 <- sqrt((var(tier1$`Actual Outcomes`) / nrow(tier1)) + (var(other$`Actual Outcomes`) / nrow(other)))
+UB_T1 <- ATE_T1 + 1.96 * SE_T1
+LB_T1 <- ATE_T1 - 1.96 * SE_T1
+sprintf("For Tier 1 ATE: %.3f, SE: %.3f, 95%% CI: [%.3f, %.3f]", ATE_T1, SE_T1, LB_T1, UB_T1)
+```
+### Tier 2
+```{r}
+tier2 <- CreditCard %>% filter(`Credit Score Tier` == 2)
+other <- CreditCard %>% filter(`Credit Score Tier` != 2)
+ATE_T2 <- mean(tier2$`Actual Outcomes`) - mean(other$`Actual Outcomes`)
+SE_T2 <- sqrt((var(tier2$`Actual Outcomes`) / nrow(tier2)) + (var(other$`Actual Outcomes`) / nrow(other)))
+UB_T2 <- ATE_T2 + 1.96 * SE_T2
+LB_T2 <- ATE_T2 - 1.96 * SE_T2
+sprintf("For Tier 2 ATE: %.3f, SE: %.3f, 95%% CI: [%.3f, %.3f]", ATE_T2, SE_T2, LB_T2, UB_T2)
+
+```
+### Tier 3
+```{r}
+tier3 <- CreditCard %>% filter(`Credit Score Tier` == 3)
+other <- CreditCard %>% filter(`Credit Score Tier` != 3)
+ATE_T3 <- mean(tier3$`Actual Outcomes`) - mean(other$`Actual Outcomes`)
+SE_T3 <- sqrt((var(tier3$`Actual Outcomes`) / nrow(tier3)) + (var(other$`Actual Outcomes`) / nrow(other)))
+UB_T3 <- ATE_T3 + 1.96 * SE_T3
+LB_T3 <- ATE_T3 - 1.96 * SE_T3
+sprintf("For Tier 3 ATE: %.3f, SE: %.3f, 95%% CI: [%.3f, %.3f]", ATE_T3, SE_T3, LB_T3, UB_T3)
+
+```
+
+## C. On the Total Sample by Blocking Using Credit Score
+### Calculate the ATE, standard error, and 95% confidence interval using the blocking technique
+
+```{r}
+# Tier 1
+tier1 <- CreditCard %>% filter(`Credit Score Tier` == 1)
+sample <- tier1 %>% filter(`Offer Letter Sent` == 1)
+nonsample <- tier1 %>% filter(`Offer Letter Sent` == 0)
+ATE_T1 <- mean(sample$`Actual Outcomes`) - mean(nonsample$`Actual Outcomes`)
+SE_T1 <- sqrt((var(sample$`Actual Outcomes`) / nrow(sample)) + (var(nonsample$`Actual Outcomes`) / nrow(nonsample)))
+
+# Tier 2
+tier2 <- CreditCard %>% filter(`Credit Score Tier` == 2)
+sample <- tier2 %>% filter(`Offer Letter Sent` == 1)
+nonsample <- tier2 %>% filter(`Offer Letter Sent` == 0)
+ATE_T2 <- mean(sample$`Actual Outcomes`) - mean(nonsample$`Actual Outcomes`)
+SE_T2 <- sqrt((var(sample$`Actual Outcomes`) / nrow(sample)) + (var(nonsample$`Actual Outcomes`) / nrow(nonsample)))
+
+# Tier 3
+tier3 <- CreditCard %>% filter(`Credit Score Tier` == 3)
+sample <- tier3 %>% filter(`Offer Letter Sent` == 1)
+nonsample <- tier3 %>% filter(`Offer Letter Sent` == 0)
+ATE_T3 <- mean(sample$`Actual Outcomes`) - mean(nonsample$`Actual Outcomes`)
+SE_T3 <- sqrt((var(sample$`Actual Outcomes`) / nrow(sample)) + (var(nonsample$`Actual Outcomes`) / nrow(nonsample)))
+
+# Combined ATE and SE
+N_total <- nrow(CreditCard)
+N_T1 <- nrow(tier1)
+N_T2 <- nrow(tier2)
+N_T3 <- nrow(tier3)
+
+w_T1 <- N_T1 / N_total
+w_T2 <- N_T2 / N_total
+w_T3 <- N_T3 / N_total
+
+Overall_ATE <- (w_T1 * ATE_T1) + (w_T2 * ATE_T2) + (w_T3 * ATE_T3)
+Overall_SE <- sqrt((w_T1^2 * SE_T1^2) + (w_T2^2 * SE_T2^2) + (w_T3^2 * SE_T3^2))
+
+LB <- Overall_ATE - 1.96 * Overall_SE
+UB <- Overall_ATE + 1.96 * Overall_SE
+sprintf("The 95%% confidence interval for actual outcome by blocking is %.3f (%.3f, %.3f)", Overall_ATE, LB, UB)
+
+```
+
