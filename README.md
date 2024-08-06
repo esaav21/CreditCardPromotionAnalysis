@@ -45,18 +45,3 @@ The main objectives of this analysis are to estimate the Average Treatment Effec
 
 - **Targeted Promotions:** Consider targeting future promotions more towards customers with lower credit scores (Tier 3), as they showed the highest positive response.
 - **Segmented Analysis:** Use blocking or segmentation techniques in future analyses to gain a deeper understanding of how different customer segments respond to promotions.
-
-## Repository Structure
-
-1. **README.md**: Overview of the project, dataset description, analysis objectives, methodology, results, and conclusions.
-2. **data/**: Folder containing the dataset.
-3. **src/**: Folder containing the source code for the analysis.
-4. **results/**: Folder containing the output results and visualizations.
-5. **requirements.txt**: List of required R packages.
-
-## How to Run the Analysis
-
-1. **Clone the Repository:**
-   ```bash
-   git clone https://github.com/username/CreditCardPromotionTestAnalysis.git
-   cd CreditCardPromotionTestAnalysis
