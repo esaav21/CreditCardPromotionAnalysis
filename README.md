@@ -15,6 +15,7 @@ The dataset "CreditCardPromotionData.csv" includes the following columns:
 - **Actual Outcomes:** Actual observed outcomes (Didn't Apply = 0, Applied = 1).
 - **Offer Letter Sent:** Whether the customer received the offer letter (Didn't Receive Offer Letter = 0, Received Offer Letter = 1).
 
+
 ## Analysis Objectives
 
 The main objectives of this analysis are to estimate the Average Treatment Effects (ATE), their Standard Errors, and 95% Confidence Intervals for actual outcomes. The analysis is conducted on the total sample and by credit score tier. Additionally, the blocking technique using credit scores is applied to understand its impact on the results.
@@ -40,6 +41,16 @@ The main objectives of this analysis are to estimate the Average Treatment Effec
 
 2. **Blocking Technique:**
    - Using the blocking technique provided a more refined estimate of the treatment effect, indicating the importance of considering customer segments when analyzing promotional impacts.
+  
+## Visualizations
+### Histogram of Credit Score Distribution
+![Credit Score Distribution](https://github.com/esaav21/CreditCardPromotionAnalysis/blob/main/Number%20of%20Applicants%20by%20Credit%20Tier.png)
+
+### Application Rates by Offer Letter Sent
+![Application Rates](https://github.com/esaav21/CreditCardPromotionAnalysis/blob/main/Applicant%20Rates%20by%20Letter%20Sent.png)
+
+### Application Rates by Credit Score Tier and Offer Letter Sent
+![Application Rates by Tier](https://github.com/esaav21/CreditCardPromotionAnalysis/blob/main/Applicant%20Rates%20by%20Letter%20Sent%20and%20Credit%20Tier.png)
 
 ## Recommendations
 
